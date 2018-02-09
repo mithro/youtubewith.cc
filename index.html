@@ -27,7 +27,7 @@ td {
  </tr>
  <tr>
   <td>
-   <form onSubmit="set_video(yt_id(document.getElementById('yt').value)); return false;">
+   <form onSubmit="window.location.hash = yt_id(document.getElementById('yt').value); return false;">
     <input id="yt" type="text" name="yt"></input>
    </form>
   </td>
@@ -50,63 +50,67 @@ td {
     else {
       yid = url;
     }
-      return yid;
+    return yid;
   }
 
-    // Replace the 'ytplayer' element with an <iframe> and
-    // YouTube player after the API code downloads.
-    var yid = null;
-    var player = null;;
-    function onYouTubePlayerAPIReady() {
-      console.log("onYouTubePlayerAPIReady()", yid);
-      player = new YT.Player('ytplayer', {
-         videoId: yid,
-         playerVars: {
-           autoplay: 1,        // Auto-play the video on load
-           controls: 0,        // Show pause/play buttons in player
-           showinfo: 0,        // Hide the video title
-           modestbranding: 1,  // Hide the Youtube Logo
-           loop: 1,            // Run the video in a loop
-           fs: 0,              // Hide the full screen button
-           cc_load_policy: 1,  // Hide closed captions
-           rel: 0,
-           cc_ars: 1,
-           iv_load_policy: 1,  // Hide the Video Annotations
-           hl: 'en',
-           autohide: 0         // Hide video controls when playing
+  // Replace the 'ytplayer' element with an <iframe> and
+  // YouTube player after the API code downloads.
+  var yid = null;
+  var player = null;;
+  function onYouTubePlayerAPIReady() {
+    console.log("onYouTubePlayerAPIReady()", yid);
+    player = new YT.Player('ytplayer', {
+       videoId: yid,
+       playerVars: {
+         autoplay: 1,        // Auto-play the video on load
+         controls: 0,        // Show pause/play buttons in player
+         showinfo: 0,        // Hide the video title
+         modestbranding: 1,  // Hide the Youtube Logo
+         loop: 1,            // Run the video in a loop
+         fs: 0,              // Hide the full screen button
+         cc_load_policy: 1,  // Hide closed captions
+         cc_ars: 1,
+         iv_load_policy: 1,  // Hide the Video Annotations
+         hl: 'en',
+         autohide: 0         // Hide video controls when playing
+       },
+       events: {
+         onReady: function(e) {
+           e.target.loadModule("captions"); 
+           e.target.mute();
          },
-         events: {
-           onReady: function(e) {
-             e.target.loadModule("captions"); 
-             e.target.mute();
-           },
-           onApiChange: function(e) {
-             console.log(e.target.getOptions());
-             console.log('captions', e.target.getOptions('captions'));
-             e.target.setOption("captions", "track", {"languageCode": "en"}); 
-             console.log('tracklist', e.target.getOption('captions', 'displaySettings'));
-             e.target.setOption("captions", "fontSize", 3);
-           }
+         onApiChange: function(e) {
+           console.log(e.target.getOptions());
+           console.log('captions', e.target.getOptions('captions'));
+           e.target.setOption("captions", "track", {"languageCode": "en"}); 
+           console.log('tracklist', e.target.getOption('captions', 'displaySettings'));
+           e.target.setOption("captions", "fontSize", 3);
          }
-      });
-    }
+       }
+    });
+  }
 
-  function set_video(new_yid) {
+  function set_video(new_yid, from_hash) {
     console.log("set_video", new_yid);
     yid = new_yid;
-    window.location.hash = "#" + yid;
+    console.log("null player");
     // Load the IFrame Player API code asynchronously.
     var tag = document.createElement('script');
     tag.src = "https://www.youtube.com/player_api";
     var firstScriptTag = document.getElementsByTagName('script')[0];
     firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-  
   }
 
   var hash = window.location.hash.substring(1);
   if (hash.length > 0) {
     set_video(yt_id(hash));
   }
+  window.onhashchange = function() {
+    hash = window.location.reload();
+  }
+
 </script>
+
+
 </body>
 </html>
