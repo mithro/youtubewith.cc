@@ -1,3 +1,4 @@
+
 <html>
 <style>
 html, body {
@@ -12,50 +13,99 @@ html, body {
 *, *:before, *:after {
   box-sizing: border-box;
 }
+tr, tr * {
+  height: auto;
+}
+td {
+  padding: 1em;
+}
 </style>
 <body>
-<div id="ytplayer"></div>
+<div id="ytplayer">
+<table>
+ <tr>
+  <td colspan=2><h1>Show a YouTube video with Subtiles enabled</h1></td>
+ </tr>
+ <tr>
+  <td>
+   <form onSubmit="set_video(yt_id(document.getElementById('yt').value)); return false;">
+    <input id="yt" type="text" name="yt"></input>
+   </form>
+  </td>
+  <td style="width: auto;">YouTube&nbsp;URL&nbsp;/&nbsp;Video&nbsp;ID&nbsp;/&nbsp;etc</td>
+ </tr>
+ <tr>
+  <td colspan=2></td>
+ </tr>
+</table>
+</div>
 
 <script>
-  // Load the IFrame Player API code asynchronously.
-  var tag = document.createElement('script');
-  tag.src = "https://www.youtube.com/player_api";
-  var firstScriptTag = document.getElementsByTagName('script')[0];
-  firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+  function yt_id(url) {
+    var yid = '';
+    url = url.replace(/(>|<)/gi,'').split(/(vi\/|v=|\/v\/|youtu\.be\/|\/embed\/)/);
+    if(url[2] !== undefined) {
+      yid = url[2].split(/[^0-9a-z_\-]/i);
+      yid = yid[0];
+    }
+    else {
+      yid = url;
+    }
+      return yid;
+  }
 
-  // Replace the 'ytplayer' element with an <iframe> and
-  // YouTube player after the API code downloads.
-  var player;
-  function onYouTubePlayerAPIReady() {
-    player = new YT.Player('ytplayer', {
-       videoId: window.location.hash.substring(1),
-       playerVars: {
-         autoplay: 1,        // Auto-play the video on load
-         controls: 0,        // Show pause/play buttons in player
-         showinfo: 0,        // Hide the video title
-         modestbranding: 1,  // Hide the Youtube Logo
-         loop: 1,            // Run the video in a loop
-         fs: 0,              // Hide the full screen button
-         cc_load_policy: 1,  // Hide closed captions
-         cc_ars: 1,
-         iv_load_policy: 1,  // Hide the Video Annotations
-         hl: 'en',
-         autohide: 0         // Hide video controls when playing
-       },
-       events: {
-         onReady: function(e) {
-           e.target.loadModule("captions"); 
-           e.target.mute();
+    // Replace the 'ytplayer' element with an <iframe> and
+    // YouTube player after the API code downloads.
+    var yid = null;
+    var player = null;;
+    function onYouTubePlayerAPIReady() {
+      console.log("onYouTubePlayerAPIReady()", yid);
+      player = new YT.Player('ytplayer', {
+         videoId: yid,
+         playerVars: {
+           autoplay: 1,        // Auto-play the video on load
+           controls: 0,        // Show pause/play buttons in player
+           showinfo: 0,        // Hide the video title
+           modestbranding: 1,  // Hide the Youtube Logo
+           loop: 1,            // Run the video in a loop
+           fs: 0,              // Hide the full screen button
+           cc_load_policy: 1,  // Hide closed captions
+           cc_ars: 1,
+           iv_load_policy: 1,  // Hide the Video Annotations
+           hl: 'en',
+           autohide: 0         // Hide video controls when playing
          },
-         onApiChange: function(e) {
-           console.log(e.target.getOptions());
-           console.log('captions', e.target.getOptions('captions'));
-           e.target.setOption("captions", "track", {"languageCode": "en"}); 
-           console.log('tracklist', e.target.getOption('captions', 'displaySettings'));
-           e.target.setOption("captions", "fontSize", 3);
+         events: {
+           onReady: function(e) {
+             e.target.loadModule("captions"); 
+             e.target.mute();
+           },
+           onApiChange: function(e) {
+             console.log(e.target.getOptions());
+             console.log('captions', e.target.getOptions('captions'));
+             e.target.setOption("captions", "track", {"languageCode": "en"}); 
+             console.log('tracklist', e.target.getOption('captions', 'displaySettings'));
+             e.target.setOption("captions", "fontSize", 3);
+           }
          }
-       }
-    });
+      });
+    }
+
+  function set_video(new_yid) {
+    console.log("set_video", new_yid);
+    yid = new_yid;
+    window.location.hash = "#" + yid;
+    // Load the IFrame Player API code asynchronously.
+    var tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/player_api";
+    var firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+  
+  }
+
+  var hash = window.location.hash.substring(1);
+  if (hash.length > 0) {
+    set_video(yt_id(hash));
   }
 </script>
 
