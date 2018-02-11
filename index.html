@@ -1,45 +1,79 @@
 <!DOCTYPE html>
 <html>
 <head>
+<meta name="viewport" content="width=device-width, user-scalable=no" />
 <style>
 html, body {
+  margin: 0;
   overflow-x: hidden;
   height: 100%;
+  font-family: 'Helvetica', 'Arial', Sans-Serif;
 }
-* {
-  margin: 0;
-  width: 100%;
+
+#ytplayer {
+  position: fixed;
+  width: 100vw;
+  height: 100vh;
+  top: 0;
+  left: 0;
+}
+
+main {
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   height: 100%;
+  flex-flow: column;
 }
-*, *:before, *:after {
-  box-sizing: border-box;
+
+label {
+  display: block;
 }
-tr, tr * {
-  height: auto;
+
+input#yt {
+  margin: 1em;
+  border-radius: 4px;
+  border: #ccc 2px solid;
+  font: inherit;
+  font-size: 24px;
+  line-height: 42px;
+  text-indent: 8px;
+  width: 400px;
+  max-width: 90vw;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.125);
 }
-td {
-  padding: 1em;
+input#yt:focus {
+  outline: none;
+  border-color: #66f;
 }
+input#yt::placeholder {
+  color: #ccc;
+}
+input#yt:focus::placeholder {
+  opacity: 0;
+}
+
+p#statusmsg {
+  line-height: 1.5em;
+  margin: 0;
+  vertical-align: middle;
+  opacity: 0.5;
+}
+
 </style>
 </head>
 <body>
 <div id="ytplayer">
-<table>
- <tr>
-  <td colspan=2><h1>Show a YouTube video with Subtiles enabled</h1></td>
- </tr>
- <tr>
-  <td>
-   <form id="form">
-     <input id="yt" type="text" name="yt" />
-   </form>
-  </td>
-  <td style="width: auto;">YouTube&nbsp;URL&nbsp;/&nbsp;Video&nbsp;ID&nbsp;/&nbsp;etc</td>
- </tr>
- <tr>
-  <td colspan=2></td>
- </tr>
-</table>
+  <main>
+    <h1>youtubewith.cc</h1>
+    <h3>Shows a YouTube video, muted with subtiles</h3>
+    <form id="form">
+      <label for="yt">YouTube URL / Video ID / etc:</label>
+      <input id="yt" autofocus type="text" name="yt" placeholder="https://youtu.be/eR4i-XJDGCM" />
+    </form>
+    <p id="statusmsg">&nbsp;</p>
+  </main>
 </div>
 
 <script>
@@ -49,6 +83,7 @@ td {
   });
 
   function yt_id(url) {
+    url = url.replace(/\s+/g, '');
     var yid = '';
     url = url.replace(/(>|<)/gi,'').split(/(vi\/|v=|\/v\/|youtu\.be\/|\/embed\/)/);
     if (url[2] !== undefined) {
@@ -58,6 +93,13 @@ td {
       yid = url[0];  // we'd split the string before
     }
     return yid;
+  }
+
+  function valid_id(id) {
+    if (/[^A-Za-z0-9_\-]/.exec(id)) {
+      return false;
+    }
+    return id.length >= 11 && id.length <= 15;  // who knows how long
   }
 
   // Replace the 'ytplayer' element with an <iframe> and
@@ -128,6 +170,20 @@ td {
       set_video(yt_id(hash));
     }
   };
+
+  yt.addEventListener('input', function() {
+    var found_id = yt_id(yt.value);
+    var valid = valid_id(found_id);
+
+    if (!found_id) {
+      statusmsg.innerHTML = '&nbsp;';
+    } else if (valid) {
+      statusmsg.textContent = '✅ Looks like a valid YouTube ID';
+    } else {
+      statusmsg.textContent = '🤔 This might not be a YouTube ID';
+    }
+
+  });
 
 </script>
 
